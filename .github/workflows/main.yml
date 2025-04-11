@@ -1,0 +1,49 @@
+name: Build APK with Expo
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Depoyu klonla
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Node.js ortamını kur
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # 3. Expo CLI ve EAS CLI’yi kur
+      - name: Install Expo CLI and EAS CLI
+        run: |
+          npm install -g expo-cli
+          npm install -g eas-cli
+
+      # 4. Proje bağımlılıklarını kur
+      - name: Install dependencies
+        run: npm install
+
+      # 5. Expo hesabına giriş yap (token ile)
+      - name: Login to Expo
+        run: eas login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      # 6. APK’yı build et
+      - name: Build APK
+        run: eas build -p android --profile production --non-interactive
+
+      # 7. Build sonucunu artifact olarak yükle
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: snakeboy-apk
+          path: '*.apk'
